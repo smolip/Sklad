@@ -2,3 +2,6 @@ backend/node_modules
 frontend
 
 backend/.env
+
+skladd/.env
+skladd/node_modules
