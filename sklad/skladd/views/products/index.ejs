@@ -34,6 +34,18 @@
                 Logout
             </button>
         </form>
+
+        <form
+            method="GET"
+            action="/dashboard/sort?field=name&order=asc"
+            class="mt-2"
+        >
+            <button
+                class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+            >
+                Seřadit podle jména
+            </button>
+        </form>
     </div>
 
     <!-- FORMULÁŘ NA PŘIDÁNÍ PRODUKTU -->
@@ -57,6 +69,12 @@
                 class="border rounded px-3 py-2 w-32"
             >
 
+            <input
+                name="category"
+                placeholder="Kategorie"
+                class="border rounded px-3 py-2 w-32"
+            >
+
             <button
                 class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
             >
@@ -72,6 +90,7 @@
                 <tr>
                     <th class="p-3">Název</th>
                     <th class="p-3">Počet</th>
+                    <th class="p-3">Kategorie</th> 
                     <th class="p-3">Akce</th>
                 </tr>
             </thead>
@@ -98,19 +117,67 @@
                                 <%= p.quantity %>
                             <% } %>
                         </td>
+                        <td class="p-3"><%= p.category %></td>
+                        <td class="p-3 flex flex-row gap-4"> 
+                            <div >
+                                <form
+                                    method="POST"
+                                    action="/dashboard/add-quantity/<%= p._id %>"
+                                    class="flex gap-2 items-center"
+                                >
+                                    <input
+                                        type="number"
+                                        name="quantity"
+                                        min="1"
+                                        required
+                                        class="border rounded px-2 py-1 w-20"
+                                        placeholder="Ks"
+                                    >
 
-                        <td class="p-3">
-                            <% if (user.role === "admin") { %>
-                                <form method="POST"
-                                      action="/dashboard/delete/<%= p._id %>">
                                     <button
-                                        class="text-red-600 hover:underline">
-                                        Smazat
+                                        class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+                                    >
+                                        Přidat
                                     </button>
                                 </form>
-                            <% } else { %>
-                                <span class="text-gray-400">—</span>
-                            <% } %>
+                            </div>
+                            <div>
+                                <form
+                                    method="POST"
+                                    action="/dashboard/delete-quantity/<%= p._id %>"
+                                    class="flex gap-2 items-center"
+                                >
+                                    <input
+                                        type="number"
+                                        name="quantity"
+                                        min="1"
+                                        max="<%= p.quantity %>"
+                                        required
+                                        class="border rounded px-2 py-1 w-20"
+                                        placeholder="Ks"
+                                    >
+
+                                    <button
+                                        class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
+                                    >
+                                        Odebrat
+                                    </button>
+
+
+                                </form>
+                                <div>
+                                    <form
+                                        method="POST"
+                                        action="/dashboard/delete/<%= p._id %>"
+                                    >
+                                        <button
+                                            class="bg-gray-600 text-white px-3 py-1 rounded hover:bg-gray-700 mt-2"
+                                        >
+                                            Smazat produkt
+                                        </button>
+                                    </form>
+                                </div>
+                                </div>
                         </td>
                     </tr>
                 <% }) %>
