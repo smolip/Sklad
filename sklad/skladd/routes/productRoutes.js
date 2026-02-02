@@ -10,6 +10,6 @@ router.post("/add", isLoggedIn, controller.addProduct);
 router.post("/add-quantity/:id", isLoggedIn, controller.addQuantity);
 router.post("/delete/:id", isLoggedIn, controller.deleteProduct);
 router.post("/delete-quantity/:id", isLoggedIn, controller.deleteQuantity);
-router.get("/sort", isLoggedIn, controller.sortBy);
+
 
 module.exports = router;

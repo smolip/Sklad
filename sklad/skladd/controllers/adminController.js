@@ -1,9 +1,22 @@
 const User = require("../models/userModel");
 const Product = require("../models/productModel");
 const bcrypt = require("bcrypt");
+const movementLog = require("../models/movementModel");
 
-exports.showCreateUser = (req, res) => {
-    res.render("admin/createUser");
+exports.dashboard = async (req, res) => {
+    const users = await User.find();
+    const productCount = await Product.countDocuments();
+    const logs = await movementLog
+        .find()
+        .sort({ createdAt: -1 })
+        .limit(100);
+
+    res.render("admin/dashboard", {
+        users,
+        productCount,
+        logs,
+        user: req.session.user
+    });
 };
 
 exports.createUser = async (req, res) => {
@@ -26,16 +39,6 @@ exports.createUser = async (req, res) => {
     res.redirect("/admin/dashboard");
 };
 
-exports.dashboard = async (req, res) => {
-    const users = await User.find();
-    const productCount = await Product.countDocuments();
-
-    res.render("admin/dashboard", {
-        users,
-        productCount,
-        user: req.session.user
-    });
-};
 
 exports.changeRole = async (req, res) => {
     if (req.params.id === req.session.user.id) {
@@ -58,3 +61,7 @@ exports.deleteUser = async (req, res) => {
     res.redirect("/admin/dashboard");
 };
 
+exports.resetMovements = async (req, res) => {
+    await movementLog.deleteMany({});
+    res.redirect("/admin/dashboard");
+};

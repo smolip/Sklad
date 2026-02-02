@@ -7,13 +7,29 @@
 </head>
 <body class="bg-gray-100 min-h-screen">
 
-<div class="max-w-4xl mx-auto p-6">
+<%
+    // ===== UI helpery (POUZE PREZENTACE) =====
+    const arrow = (field) => {
+        if (sort.field !== field) return "";
+        return sort.order === 1 ? " ↑" : " ↓";
+    };
 
-    <!-- HLAVIČKA + LOGOUT -->
-    <div class="flex justify-between items-center mb-6">
+    const nextOrder = (field) => {
+        if (sort.field === field && sort.order === 1) return "desc";
+        return "asc";
+    };
+
+    const active = (field) =>
+        sort.field === field ? "font-semibold text-blue-700" : "";
+%>
+
+<div class="max-w-7xl mx-auto p-8 space-y-8">
+
+    <!-- HLAVIČKA -->
+    <header class="flex justify-between items-center">
         <div>
-            <h1 class="text-3xl font-bold">Sklad</h1>
-            <p class="text-gray-600">
+            <h1 class="text-4xl font-bold">Sklad</h1>
+            <p class="text-gray-600 mt-1">
                 Přihlášen jako
                 <strong><%= user.username %></strong>
                 (<%= user.role %>)
@@ -21,7 +37,7 @@
 
             <% if (user.role === "admin") { %>
                 <a href="/admin/dashboard"
-                   class="text-blue-600 hover:underline">
+                   class="text-blue-600 hover:underline text-sm mt-1 inline-block">
                     Admin dashboard
                 </a>
             <% } %>
@@ -29,163 +45,143 @@
 
         <form method="POST" action="/logout">
             <button
-                class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900"
-            >
+                class="bg-gray-800 text-white px-5 py-2 rounded-lg hover:bg-gray-900 text-sm">
                 Logout
             </button>
         </form>
+    </header>
+
+    <!-- PŘIDÁNÍ PRODUKTU -->
+    <section class="bg-white p-6 rounded-xl shadow-sm">
+        <h2 class="text-2xl font-semibold mb-4">
+            Přidat položku
+        </h2>
 
         <form
-            method="GET"
-            action="/dashboard/sort?field=name&order=asc"
-            class="mt-2"
+            method="POST"
+            action="/dashboard/add?field=<%= sort.field %>&order=<%= sort.order === 1 ? 'asc' : 'desc' %>"
+            class="grid grid-cols-1 md:grid-cols-4 gap-4"
         >
-            <button
-                class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
-            >
-                Seřadit podle jména
-            </button>
-        </form>
-    </div>
+            <input name="name" placeholder="Název produktu" required
+                   class="border rounded-lg px-3 py-2">
 
-    <!-- FORMULÁŘ NA PŘIDÁNÍ PRODUKTU -->
-    <div class="bg-white p-4 rounded shadow mb-6">
-        <h2 class="text-xl font-semibold mb-4">Přidat položku</h2>
+            <input name="quantity" type="number" min="1" placeholder="Počet" required
+                   class="border rounded-lg px-3 py-2">
 
-        <form method="POST" action="/dashboard/add" class="flex gap-4">
-            <input
-                name="name"
-                placeholder="Název produktu"
-                required
-                class="border rounded px-3 py-2 w-full"
-            >
-
-            <input
-                name="quantity"
-                type="number"
-                min="0"
-                placeholder="Počet"
-                required
-                class="border rounded px-3 py-2 w-32"
-            >
-
-            <input
-                name="category"
-                placeholder="Kategorie"
-                class="border rounded px-3 py-2 w-32"
-            >
+            <input name="category" placeholder="Kategorie"
+                   class="border rounded-lg px-3 py-2">
 
             <button
-                class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-            >
+                class="bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">
                 Přidat
             </button>
         </form>
-    </div>
+    </section>
 
     <!-- SEZNAM PRODUKTŮ -->
-    <div class="bg-white rounded shadow">
+    <section class="bg-white rounded-xl shadow-sm overflow-hidden">
         <table class="w-full text-left">
-            <thead class="bg-gray-200">
+            <thead class="bg-gray-100 text-sm uppercase text-gray-600">
                 <tr>
-                    <th class="p-3">Název</th>
-                    <th class="p-3">Počet</th>
-                    <th class="p-3">Kategorie</th> 
-                    <th class="p-3">Akce</th>
+                    <th class="p-4">
+                        <a class="<%= active('name') %>"
+                           href="/dashboard?field=name&order=<%= nextOrder('name') %>">
+                            Název<%= arrow('name') %>
+                        </a>
+                    </th>
+                    <th class="p-4">
+                        <a class="<%= active('quantity') %>"
+                           href="/dashboard?field=quantity&order=<%= nextOrder('quantity') %>">
+                            Počet<%= arrow('quantity') %>
+                        </a>
+                    </th>
+                    <th class="p-4">
+                        <a class="<%= active('category') %>"
+                           href="/dashboard?field=category&order=<%= nextOrder('category') %>">
+                            Kategorie<%= arrow('category') %>
+                        </a>
+                    </th>
+                    <th class="p-4">
+                        <a class="<%= active('createdAt') %>"
+                           href="/dashboard?field=createdAt&order=<%= nextOrder('createdAt') %>">
+                            Přidáno<%= arrow('createdAt') %>
+                        </a>
+                    </th>
+                    <th class="p-4 text-right">Akce</th>
                 </tr>
             </thead>
+
             <tbody>
                 <% if (products.length === 0) { %>
                     <tr>
-                        <td colspan="3"
-                            class="p-3 text-center text-gray-500">
+                        <td colspan="5" class="p-4 text-center text-gray-500">
                             Žádné produkty na skladě.
                         </td>
                     </tr>
                 <% } %>
 
                 <% products.forEach(p => { %>
-                    <tr class="border-t">
-                        <td class="p-3"><%= p.name %></td>
+                    <tr class="border-t hover:bg-gray-50">
+                        <td class="p-4 font-medium"><%= p.name %></td>
 
-                        <td class="p-3">
+                        <td class="p-4">
                             <% if (p.quantity < 5) { %>
-                                <span class="text-red-600 font-bold">
+                                <span class="text-red-600 font-semibold">
                                     <%= p.quantity %>
                                 </span>
                             <% } else { %>
                                 <%= p.quantity %>
                             <% } %>
                         </td>
-                        <td class="p-3"><%= p.category %></td>
-                        <td class="p-3 flex flex-row gap-4"> 
-                            <div >
-                                <form
-                                    method="POST"
-                                    action="/dashboard/add-quantity/<%= p._id %>"
-                                    class="flex gap-2 items-center"
-                                >
-                                    <input
-                                        type="number"
-                                        name="quantity"
-                                        min="1"
-                                        required
-                                        class="border rounded px-2 py-1 w-20"
-                                        placeholder="Ks"
-                                    >
 
+                        <td class="p-4"><%= p.category %></td>
+
+                        <td class="p-4 text-sm text-gray-600">
+                            <%= p.createdAt.toLocaleDateString() %>
+                        </td>
+
+                        <td class="p-4 text-right">
+                            <div class="flex justify-end gap-3">
+                                <!-- PŘIDAT -->
+                                <form method="POST"
+                                      action="/dashboard/add-quantity/<%= p._id %>?field=<%= sort.field %>&order=<%= sort.order === 1 ? 'asc' : 'desc' %>"
+                                      class="flex gap-2">
+                                    <input type="number" name="quantity" min="1" required
+                                           class="border rounded-lg px-2 py-1 w-20 text-sm">
                                     <button
-                                        class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
-                                    >
-                                        Přidat
+                                        class="bg-green-600 text-white px-3 py-1 rounded-lg text-sm">
+                                        +
+                                    </button>
+                                </form>
+
+                                <!-- ODEBRAT -->
+                                <form method="POST"
+                                      action="/dashboard/delete-quantity/<%= p._id %>?field=<%= sort.field %>&order=<%= sort.order === 1 ? 'asc' : 'desc' %>"
+                                      class="flex gap-2">
+                                    <input type="number" name="quantity" min="1" max="<%= p.quantity %>" required
+                                           class="border rounded-lg px-2 py-1 w-20 text-sm">
+                                    <button
+                                        class="bg-red-600 text-white px-3 py-1 rounded-lg text-sm">
+                                        −
+                                    </button>
+                                </form>
+
+                                <!-- SMAZAT -->
+                                <form method="POST"
+                                      action="/dashboard/delete/<%= p._id %>?field=<%= sort.field %>&order=<%= sort.order === 1 ? 'asc' : 'desc' %>">
+                                    <button
+                                        class="bg-gray-600 text-white px-3 py-1 rounded-lg text-sm">
+                                        Smazat
                                     </button>
                                 </form>
                             </div>
-                            <div>
-                                <form
-                                    method="POST"
-                                    action="/dashboard/delete-quantity/<%= p._id %>"
-                                    class="flex gap-2 items-center"
-                                >
-                                    <input
-                                        type="number"
-                                        name="quantity"
-                                        min="1"
-                                        max="<%= p.quantity %>"
-                                        required
-                                        class="border rounded px-2 py-1 w-20"
-                                        placeholder="Ks"
-                                    >
-
-                                    <button
-                                        class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
-                                    >
-                                        Odebrat
-                                    </button>
-
-
-                                </form>
-                                <div>
-                                    <form
-                                        method="POST"
-                                        action="/dashboard/delete/<%= p._id %>"
-                                    >
-                                        <button
-                                            class="bg-gray-600 text-white px-3 py-1 rounded hover:bg-gray-700 mt-2"
-                                        >
-                                            Smazat produkt
-                                        </button>
-                                    </form>
-                                </div>
-                                </div>
                         </td>
                     </tr>
                 <% }) %>
             </tbody>
         </table>
-    </div>
+    </section>
 
 </div>
-
 </body>
 </html>
